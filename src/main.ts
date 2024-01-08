@@ -22,13 +22,21 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle('FastFood RestFul API')
-    .setDescription('Endpoints of FastFood API')
+    .setTitle('Restaurant RestFul API')
+    .setDescription(
+      `Endpoints of Restaurant API\n
+      How to start?
+      \n1. Go to [login endpoint](#/Auth/AuthController_loginUser) and get your token
+      \n2. Add the token in the Authorize button
+      `,
+    )
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('/', app, document, {
     swaggerOptions: { defaultModelExpandDepth: 3, defaultModelsExpandDepth: 3 },
+    customSiteTitle: 'Restaurant API Doc',
   });
 
   await app.listen(3000);

@@ -30,7 +30,7 @@ export class Food {
   @Column('bool', { default: true })
   isActive: boolean;
 
-  @ManyToOne(() => Category, (category) => category.food)
+  @ManyToOne(() => Category, (category) => category.food, { eager: true })
   category: Category;
 
   @BeforeInsert()

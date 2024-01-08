@@ -3,6 +3,8 @@ import { FoodsModule } from './foods/foods.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { CategoriesModule } from './categories/categories.module';
+import { SeedModule } from './seed/seed.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { CategoriesModule } from './categories/categories.module';
     }),
     FoodsModule,
     CategoriesModule,
+    SeedModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],

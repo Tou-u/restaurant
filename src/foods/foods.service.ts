@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,6 +9,7 @@ import { Like, Repository } from 'typeorm';
 import { CreateFoodDto, UpdateFoodDto, FindFoodDto } from './dto';
 import { Food } from './entities/food.entity';
 import { Category } from 'src/categories/entities/category.entity';
+import { isUUID } from 'class-validator';
 
 @Injectable()
 export class FoodsService {
@@ -21,7 +23,7 @@ export class FoodsService {
 
   async create(createFoodDto: CreateFoodDto) {
     const checkCategory = await this.categoryRepository.findOneBy({
-      name: createFoodDto.category,
+      name: createFoodDto.category.toLowerCase(),
     });
 
     if (!checkCategory)
@@ -29,48 +31,108 @@ export class FoodsService {
         `The category ${createFoodDto.category} not exist`,
       );
 
-    const food = this.foodRepository.create({
-      ...createFoodDto,
-      category: checkCategory,
-    });
     try {
-      await this.foodRepository.save(food);
-      delete food.category.id;
-      return food;
+      const food = this.foodRepository.create({
+        ...createFoodDto,
+        category: checkCategory,
+      });
+      await this.foodRepository.insert(food);
+
+      return {
+        statusCode: 200,
+        message: 'Product stored successfully',
+      };
     } catch (error) {
       this.handleExceptions(error);
     }
   }
 
   async findAll(findFoodDto: FindFoodDto) {
-    const { name = '', category = null } = findFoodDto;
+    const { name = '', category = '' } = findFoodDto;
+
+    let formatCategory = category;
+
+    if (formatCategory.length === 0) {
+      formatCategory = undefined;
+    }
 
     const foods = await this.foodRepository.find({
-      relations: ['category'],
-      select: { category: { name: true } },
       where: {
         name: Like(`%${name.toLowerCase()}%`),
-        category: { name: category?.toLowerCase() },
+        category: { name: formatCategory?.toLowerCase() },
       },
     });
     return foods;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} food`;
+  async findOne(term: string) {
+    let food: Food;
+
+    if (isUUID(term, '4')) {
+      food = await this.foodRepository.findOneBy({ id: term });
+    } else {
+      food = await this.foodRepository.findOneBy({ name: term.toLowerCase() });
+    }
+
+    if (!food) throw new NotFoundException(`Food ${term} not found`);
+
+    return food;
   }
 
-  update(id: number, updateFoodDto: UpdateFoodDto) {
-    console.log(updateFoodDto);
-    return `This action updates a #${id} food`;
+  async update(id: string, updateFoodDto: UpdateFoodDto) {
+    const { category, ...data } = updateFoodDto;
+    let checkCategory: Category;
+
+    if (Object.keys(data).length === 0 && !category) {
+      return {
+        statusCode: 200,
+        message: 'No changes made',
+      };
+    }
+
+    try {
+      if (category) {
+        checkCategory = await this.categoryRepository.findOneBy({
+          name: category,
+        });
+
+        if (!checkCategory) {
+          return new NotFoundException(`Category ${category} not exist`);
+        }
+      }
+
+      await this.foodRepository.update(id, {
+        ...data,
+        category: checkCategory,
+      });
+
+      return {
+        statusCode: 200,
+        message: 'Changes made successfully',
+      };
+    } catch (error) {
+      this.handleExceptions(error);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} food`;
+  async remove(id: string) {
+    try {
+      const food = await this.foodRepository.delete(id);
+
+      if (food.affected === 0)
+        return new NotFoundException(`Food ${id} not found`);
+
+      return { statusCode: 200, message: 'Food successfully removed' };
+    } catch (error) {
+      this.handleExceptions(error);
+    }
   }
 
   private handleExceptions(error: any) {
     if (error.code === '23505') throw new BadRequestException(error.detail);
-    // TODO: Handle server exception
+
+    throw new InternalServerErrorException(
+      'Unexpected error, check server logs',
+    );
   }
 }

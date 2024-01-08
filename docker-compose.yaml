@@ -8,6 +8,6 @@ services:
     environment:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
-    container_name: FastFoodDB
+    container_name: RestaurantDB
     volumes:
       - ./postgres:/var/lib/postgresql/data
