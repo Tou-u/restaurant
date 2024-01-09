@@ -1,5 +1,3 @@
-# path: ./Dockerfile
-
 # official Nodejs image
 FROM node:20-alpine
 ENV PNPM_HOME="/pnpm"
@@ -18,7 +16,7 @@ RUN pnpm install
 COPY . .
 
 # Expose port 3000
-EXPOSE 4000
+# EXPOSE 3000
 
 # Start the app
-CMD ["pnpm", "start"]
+CMD ["node", "dist/main"]

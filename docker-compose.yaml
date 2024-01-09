@@ -17,7 +17,12 @@ services:
       - db_network
 
   app:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: backend-server
+    container_name: RestaurantApp
+    restart: always
     env_file:
       - .env
     environment:
