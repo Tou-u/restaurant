@@ -11,6 +11,7 @@ COPY package*.json pnpm-lock.yaml ./
 
 # Install dependencies
 RUN pnpm install
+RUN pnpm build
 
 # Copy the rest of the app's source code to the container
 COPY . .
