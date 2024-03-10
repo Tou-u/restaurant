@@ -19,7 +19,7 @@ import { AuthModule } from './auth/auth.module';
       database: process.env.DB_NAME,
       autoLoadEntities: true,
       // ! Development only
-      // synchronize: true,
+      synchronize: true,
     }),
     FoodsModule,
     CategoriesModule,
