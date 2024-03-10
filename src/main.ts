@@ -39,7 +39,7 @@ async function bootstrap() {
     customSiteTitle: 'Restaurant API Doc',
   });
 
-  await app.listen(process.env.PORT);
+  await app.listen(process.env.PORT, '0.0.0.0');
   console.log(`App running on port ${process.env.PORT}`);
 }
 bootstrap();
